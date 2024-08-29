@@ -12,6 +12,7 @@ const productSchema = new mongoose.Schema({
   description: { type: String },
   price: { type: Number, required: true },
   image: { type: String },
+  rate: { type: Number, default: 5},
   commissionRates: commissionSchema,
 });
 

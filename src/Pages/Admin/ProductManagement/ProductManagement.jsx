@@ -7,7 +7,6 @@ import {
   addProduct,
   updateProduct,
   deleteProduct,
-  fetchCommissionRates,
 } from "../../../components/services/api";
 import { notifyAffiliates } from "../../../components/services/notificationService";
 import {
@@ -25,42 +24,62 @@ const ProductManagement = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [isEditingProduct, setIsEditingProduct] = useState(false);
   const [productToEdit, setProductToEdit] = useState(null);
-  const [commissionRates, setCommissionRates] = useState({});
 
   useEffect(() => {
-    Promise.all([fetchProducts(), fetchCommissionRates()]).then(
-      ([productsData, ratesData]) => {
+    const fetchProductsData = async () => {
+      try {
+        const productsData = await fetchProducts();
         setProducts(productsData);
-        setCommissionRates(ratesData);
+      } catch (error) {
+        console.error("Error fetching products:", error);
+      } finally {
         setIsLoading(false);
       }
-    );
+    };
+
+    fetchProductsData();
   }, []);
 
   const handleAddProduct = async (product) => {
-    const newProduct = await addProduct(product);
-    setProducts([...products, newProduct]);
-    notifyAffiliates("New product added");
-    setIsAddingProduct(false);
+    try {
+      const newProduct = await addProduct(product);
+      setProducts((prevProducts) => [...prevProducts, newProduct]);
+      notifyAffiliates("New product added");
+    } catch (error) {
+      console.error("Error adding product:", error);
+    } finally {
+      setIsAddingProduct(false);
+    }
   };
 
   const handleEditProduct = async (updatedProduct) => {
-    const updated = await updateProduct(productToEdit, updatedProduct);
-    setProducts(products.map((p) => (p._id === productToEdit ? updated : p)));
-    notifyAffiliates("Product updated");
-    setIsEditingProduct(false);
-    setProductToEdit(null);
+    try {
+      const updated = await updateProduct(productToEdit._id, updatedProduct);
+      setProducts((prevProducts) =>
+        prevProducts.map((p) => (p._id === productToEdit._id ? updated : p))
+      );
+      notifyAffiliates("Product updated");
+    } catch (error) {
+      console.error("Error updating product:", error);
+    } finally {
+      setIsEditingProduct(false);
+      setProductToEdit(null);
+    }
   };
 
   const handleRemoveProduct = async (id) => {
-    console.log(id);
-    await deleteProduct(id);
-    setProducts(products.filter((p) => p._id !== id));
-    notifyAffiliates("Product removed");
+    try {
+      await deleteProduct(id);
+      setProducts((prevProducts) =>
+        prevProducts.filter((p) => p._id !== id)
+      );
+      notifyAffiliates("Product removed");
+    } catch (error) {
+      console.error("Error removing product:", error);
+    }
   };
 
   const openEditModal = (product) => {
-    console.log(product); // id of product
     setProductToEdit(product);
     setIsEditingProduct(true);
   };

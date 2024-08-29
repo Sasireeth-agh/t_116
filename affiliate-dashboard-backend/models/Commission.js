@@ -1,8 +1,8 @@
 const mongoose = require('mongoose');
 
 const commissionSchema = new mongoose.Schema({
-  productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product'},
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   rate: { type: Number, required: true },
 });
 

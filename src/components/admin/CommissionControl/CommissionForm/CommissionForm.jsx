@@ -15,6 +15,7 @@ const CommissionForm = ({
   options,
 }) => {
   const [isCustom, setIsCustom] = useState(false);
+  const [selectedType, setSelectedType] = useState("");
   const {
     register,
     handleSubmit,
@@ -30,6 +31,7 @@ const CommissionForm = ({
 
   const handleCustomOption = (e) => {
     setIsCustom(e.target.value === "custom");
+    setSelectedType(e.target.value);
     reset();
   };
 
@@ -57,6 +59,7 @@ const CommissionForm = ({
       <div>
         <Select
           {...register("option", { required: "Option is required" })}
+          value={selectedType}
           onChange={handleCustomOption}
         >
           {options.map((option) => (

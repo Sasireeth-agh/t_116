@@ -34,19 +34,52 @@ export const deleteProduct = async (id) => {
   });
 };
 
-export const fetchCommissionRates = async () => {
-  return new Promise((resolve) => {
-    setTimeout(() => resolve(dummyCommissionRates), 500);
-  });
+export const fetchCommissionRates = async (type) => {
+  console.log(type);
+  if (!type) {
+    throw new Error("Type parameter is required");
+  }
+
+  try {
+    const response = await fetch(`http://localhost:5501/api/commissions/view?type=${type}`);
+    
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`HTTP error! status: ${response.status} - ${errorText}`);
+    }
+    
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching commission rates:", error);
+    throw error;
+  }
 };
 
-export const updateCommissionRate = async (occupation, rate) => {
-  return new Promise((resolve) => {
-    dummyCommissionRates[occupation] = rate;
-    setTimeout(() => resolve({ [occupation]: rate }), 500);
-  });
-};
 
+
+
+
+export const updateCommissionRate = async (type, option, rate) => {
+  try {
+    const response = await fetch(`http://localhost:5501/api/commissions/update`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ type, option, rate }),
+    });
+
+    if (!response.ok) {
+      throw new Error('Failed to update commission rate');
+    }
+
+    const data = await response.json();
+    return data;
+  } catch (error) {
+    console.error('Error updating commission rate:', error);
+    return null;
+  }
+};
 
 export const fetchAnnouncements = async () => {
   return new Promise((resolve) => {

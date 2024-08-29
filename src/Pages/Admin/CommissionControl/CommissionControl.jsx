@@ -15,48 +15,72 @@ import {
 } from "./CommissionControl.style.js";
 
 const CommissionControl = () => {
-  const [commissionRates, setCommissionRates] = useState({});
+  const [commissionRates, setCommissionRates] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedOption, setSelectedOption] = useState("occupation");
+  const [selectedOption, setSelectedOption] = useState("user");
   const [options, setOptions] = useState([]);
 
-  useEffect(() => {
-    fetchCommissionRates().then((data) => {
+  const fetchCommissionRatesData = async () => {
+    try {
+      setIsLoading(true);
+      const data = await fetchCommissionRates(selectedOption);
       setCommissionRates(data);
+    } catch (error) {
+      console.error("Error fetching commission rates:", error);
+    } finally {
       setIsLoading(false);
-    });
-  }, []);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
+    console.log("Selected option on mount or change:", selectedOption);
+    if (!selectedOption) {
+      console.error("Selected option is not set");
+      return;
+    }
+    fetchCommissionRatesData();
+  }, [selectedOption]);
+
+  useEffect(() => {
+    const fetchOptions = async () => {
       setIsLoading(true);
       let data = [];
       if (selectedOption === "occupation") {
-        data = Object.keys(commissionRates);
+        data = commissionRates.map(rate => rate.name);
       } else if (selectedOption === "product") {
         const products = await fetchProducts();
-        data = products.map((product) => product.name);
+        data = products.map(product => product.name);
       } else if (selectedOption === "user") {
         const users = await fetchUsers();
-        data = users.map((user) => user.name);
+        data = users.map(user => user.name);
       }
       setOptions(data);
       setIsLoading(false);
     };
 
-    fetchData();
+    if (selectedOption) {
+      fetchOptions();
+    }
   }, [selectedOption, commissionRates]);
 
   const handleUpdateCommissionRate = async (key, rate) => {
-    const updatedRate = await updateCommissionRate(key, rate);
-    setCommissionRates((prevRates) => ({
-      ...prevRates,
-      ...updatedRate,
-    }));
+    try {
+      const updatedRate = await updateCommissionRate(selectedOption, key, rate);
+      if (updatedRate) {
+        setCommissionRates(prevRates => (
+          prevRates.map(item => (
+            item.name === key ? { ...item, rate } : item
+          ))
+        ));
 
-    if (selectedOption === "occupation" && !options.includes(key)) {
-      setOptions((prevOptions) => [...prevOptions, key]);
+        if (!options.includes(key)) {
+          setOptions(prevOptions => [...prevOptions, key]);
+        }
+      }
+    } catch (error) {
+      console.error("Error updating commission rate:", error);
     }
+    fetchCommissionRatesData();
   };
 
   return (
